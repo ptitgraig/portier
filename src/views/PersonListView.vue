@@ -5,11 +5,15 @@ import { useRouter, useRoute } from 'vue-router';
 import { supabase } from "@/utils/supabase";
 //import type { Person } from "@/types/Person";
 import { showNotify } from "vant";
+import { usePerson } from '@/composables/usePerson';
+import {APP} from "@/constants/config.js";
+
+const { personList, getPersons } = usePerson();
 
 const router = useRouter();
 const route = useRoute();
 
-const personList/*: Ref<Person[]>*/ = ref([])
+//const personList/*: Ref<Person[]>*/ = ref([])
 const currentOfficeId = route.query.officeId;
 const showAddPersonForm = ref(false);
 const first_name = ref('');
@@ -30,13 +34,6 @@ watch(is_baby, (val) => {
     is_child.value = false;
   }
 })
-
-async function getPersons() {
-  const { data } = await supabase.from('person')
-      .select(`*, person_office (office_id)`)
-      .order('last_name', { ascending: true })
-  personList.value = data
-}
 
 onMounted(() => {
   getPersons();
@@ -75,27 +72,34 @@ const selectedPersonInfos = computed(() => {
 })
 
 const showBottom = ref(false);
+const isRecordingPersonAsPresent = ref(false);
+const recordingPersonId = ref(null);
 
 async function markPersonAsPresent(personId/*: string*/) {
+  recordingPersonId.value = personId;
+  isRecordingPersonAsPresent.value = true;
   const isRegistered = await isVisitorAlreadyRegistered(personId);
   if (!isRegistered) {
-    const { error } = await supabase
+    const {error} = await supabase
         .from('person_office')
-        .insert({ person_id: personId, office_id: currentOfficeId });
+        .insert({person_id: personId, office_id: currentOfficeId});
 
     await getPersons();
 
-    showNotify('Cette personne a bien été enregistrée pour ce culte');
+    isRecordingPersonAsPresent.value = false;
+    recordingPersonId.value = null;
     showBottom.value = false;
-  } else {
-    showNotify({type: 'danger', message: 'Cette personne a déjà été enregistrée pour ce culte.'});
   }
+}
+
+async function removePersonAsPresent(personId/*: string*/) {
+  console.log(personId);
 }
 
 async function isVisitorAlreadyRegistered(personId) {
   const { data } = await supabase
       .from('person_office')
-      .select('id')
+      .select('person_id')
       .eq('person_id', personId)
       .eq('office_id', currentOfficeId)
   return data && data.length > 0;
@@ -128,22 +132,25 @@ async function onSubmit(values) {
 </script>
 
 <template>
-  <van-nav-bar
-      left-text="Accueil"
-      left-arrow
-      @click-left="router.push({ name: 'home' })"
-      title="Le Portier">
-    <template #right>
-      <van-button icon="plus" size="small" plain type="primary" @click="addPerson()">
-        Visiteur
-      </van-button>
-    </template>
-  </van-nav-bar>
+  <van-sticky>
+    <van-nav-bar
+        left-text="Accueil"
+        left-arrow
+        @click-left="router.push({ name: 'home' })"
+        :title="APP.NAME">
 
-  <van-search
-    v-model="needle"
-    placeholder="Rechercher un visiteur"
-  />
+      <template #right>
+        <van-button icon="plus" size="small" plain type="primary" @click="addPerson()">
+          Visiteur
+        </van-button>
+      </template>
+    </van-nav-bar>
+
+    <van-search
+      v-model="needle"
+      placeholder="Rechercher un visiteur"
+    />
+  </van-sticky>
 
   <van-index-bar>
     <template v-if="personList.length > 0">
@@ -151,12 +158,32 @@ async function onSubmit(values) {
         <van-index-anchor :index="anchor" />
         <template v-for="person in filteredPersonList" :key="person.id">
           <template v-if="person.last_name.substring(0, 1) === anchor">
-            <van-cell icon="friends" :title="`${person.last_name} ${person.first_name}`" @click="onPersonClicked(person.id)">
-              <template v-if="person.person_office.find(({office_id}) => office_id === currentOfficeId)">
-                <van-icon name="checked" style="color:green;" />
+            <van-cell>
+              <template #title>
+                <span>{{ person.last_name }} {{ person.first_name }}</span>
+                <span><van-icon name="medal-o" color="goldenrod" v-if="person.is_member"></van-icon></span>
+                <span><van-icon name="baby" color="pink" v-if="person.is_baby"></van-icon></span>
               </template>
 
-              <van-icon v-if="person.is_member" name="friends" style="color:blue;" />
+              <template #icon v-if="person.is_member">
+
+              </template>
+
+              <template v-if="person.person_office.find(({office_id}) => office_id === currentOfficeId)">
+                <van-icon name="passed" size="30" color="green" @click="removePersonAsPresent(person.id)" />
+              </template>
+
+              <van-button
+                  v-else
+                  type="primary"
+                  plain
+                  :loading="isRecordingPersonAsPresent && person.id === recordingPersonId"
+                  size="small"
+                  :disabled="isRecordingPersonAsPresent && person.id === recordingPersonId"
+                  loading-text="En cours"
+                  @click="markPersonAsPresent(person.id)">
+                Enregistrer
+              </van-button>
             </van-cell>
           </template>
         </template>

@@ -59,6 +59,17 @@ async function getOfficeByDate(date/*:string*/) {
   }
 }
 
+function formatter(day) {
+  if (day.date.getDay() !== 0) {
+    day.type = "disabled"
+  }
+  return day;
+}
+
+const text = ref('');
+function onConfirm(dates) {
+  text.value = dates;
+}
 </script>
 
 <template>
@@ -68,13 +79,13 @@ async function getOfficeByDate(date/*:string*/) {
       @click-left="router.push({ name: 'home' })"
       title="Le Portier" />
 
-  <van-date-picker
-    v-model="currentDate"
-    :confirm-button-text="''"
-    :cancel-button-text="''"
-    title="Choisissez un dimanche"
-    :filter="filter"
-    :max-date="today"
+  <van-calendar
+      title="Choisir un dimanche"
+      :value="text"
+      :poppable="false"
+      :formatter="formatter"
+      @confirm="onConfirm"
+      :style="{ height: '500px' }"
   />
 
   <van-space direction="horizontal" fill>

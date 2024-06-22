@@ -6,8 +6,8 @@ import 'vant/lib/index.css';
   <RouterView />
 </template>
 
-<style scoped>
-input, select {
+<style>
+.van-field__control {
   font-size: 16px;
 }
 

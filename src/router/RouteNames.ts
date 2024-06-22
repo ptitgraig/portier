@@ -3,5 +3,6 @@ export enum RouteName {
     DATE_PICKING = 'date-picking',
     DATE_SELECTION = 'date-selection',
     PERSON_LIST = 'person-list',
+    EDIT_PERSON = 'edit-person',
     STATS = 'stats'
 }
