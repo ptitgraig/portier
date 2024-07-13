@@ -2,10 +2,10 @@
   "background_color": "#ffffff",
   "dir": "ltr",
   "display": "standalone",
-  "name": "Le portier",
+  "name": "Le Portier",
   "orientation": "any",
   "scope": "/",
-  "short_name": "une app pour le portier de télégraphe",
+  "short_name": "Le Portier",
   "start_url": "/",
   "theme_color": "#ffffff",
   "icons": [
