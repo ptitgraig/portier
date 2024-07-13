@@ -5,15 +5,13 @@ import { supabase } from "@/utils/supabase";
 import {usePerson} from "@/composables/usePerson.js";
 import {APP} from "@/constants/config.js";
 
-
 const { personList, getPersons } = usePerson();
 
 const router = useRouter();
 
 onMounted(() => {
   getPersons();
-})
-
+});
 
 const filteredPersonList = computed(() => {
   if (needle.value === '' || personList.value.length === 0) {
@@ -36,6 +34,7 @@ const is_child = ref(false);
 const short_desc = ref('');
 const is_member = ref(false);
 const currentPersonId = ref('');
+const nbOfOfficesAttendance = ref(0);
 
 
 watch(is_child, (val) => {
@@ -53,13 +52,14 @@ watch(is_baby, (val) => {
 async function showEditForm(personId) {
   currentPersonId.value = personId;
   const { data } = await supabase.from('person')
-      .select(`*`).eq('id', personId);
+      .select(`*, person_office (office_id)`).eq('id', personId);
   first_name.value = data[0].first_name;
   last_name.value = data[0].last_name;
   is_baby.value = data[0].is_baby;
   short_desc.value = data[0].short_desc;
   is_child.value = data[0].is_child;
   is_member.value = data[0].is_member;
+  nbOfOfficesAttendance.value = data[0].person_office.length;
 
   isEditFormShown.value = true;
 }
@@ -103,6 +103,7 @@ async function onEditPerson(person) {
             <van-cell is-link @click="showEditForm(person.id)">
               <template #title>
                 <span>{{ person.last_name }} {{ person.first_name }}</span>
+                <span><van-icon name="medal-o" color="goldenrod" v-if="person.is_member"></van-icon></span>
               </template>
             </van-cell>
           </template>
@@ -140,6 +141,9 @@ async function onEditPerson(person) {
             <van-switch v-model="is_member" />
           </template>
         </van-field>
+        <van-cell>
+          A participer à {{ nbOfOfficesAttendance }} cultes
+        </van-cell>
       </van-cell-group>
       <div style="margin: 16px;">
         <van-button round block type="primary" native-type="submit" >

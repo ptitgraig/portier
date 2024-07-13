@@ -4,7 +4,7 @@ import {computed, onMounted, ref, watch} from "vue";
 import { useRouter, useRoute } from 'vue-router';
 import { supabase } from "@/utils/supabase";
 //import type { Person } from "@/types/Person";
-import { showNotify } from "vant";
+import {showConfirmDialog, showNotify} from "vant";
 import { usePerson } from '@/composables/usePerson';
 import {APP} from "@/constants/config.js";
 
@@ -92,8 +92,28 @@ async function markPersonAsPresent(personId/*: string*/) {
   }
 }
 
-async function removePersonAsPresent(personId/*: string*/) {
+function removePersonAsPresent(personId/*: string*/) {
   console.log(personId);
+  showConfirmDialog({
+    title: 'Title',
+    message: "Êtes vous sûr d'annuler l'enregistrement ?",
+    cancelButtonText: "Annuler",
+    confirmButtonText: "Confirmer"
+  })
+  .then(async () => {
+    const {error} = await supabase
+        .from('person_office')
+        .delete()
+        .eq('person_id', personId)
+        .eq('person_id', personId)
+        .eq('office_id', currentOfficeId);
+
+    await getPersons();
+  })
+  .catch(() => {
+    // do nothing
+  });
+
 }
 
 async function isVisitorAlreadyRegistered(personId) {
@@ -163,10 +183,6 @@ async function onSubmit(values) {
                 <span>{{ person.last_name }} {{ person.first_name }}</span>
                 <span><van-icon name="medal-o" color="goldenrod" v-if="person.is_member"></van-icon></span>
                 <span><van-icon name="baby" color="pink" v-if="person.is_baby"></van-icon></span>
-              </template>
-
-              <template #icon v-if="person.is_member">
-
               </template>
 
               <template v-if="person.person_office.find(({office_id}) => office_id === currentOfficeId)">
