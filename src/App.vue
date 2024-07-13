@@ -1,7 +1,3 @@
-<script setup>
-import 'vant/lib/index.css';
-</script>
-
 <template>
   <RouterView />
 </template>

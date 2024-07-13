@@ -3,7 +3,7 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite';
-import { VantResolver } from '@vant/auto-import-resolver'
+import { VantResolver, VantImports } from '@vant/auto-import-resolver'
 import Components from 'unplugin-vue-components/vite'
 
 // https://vitejs.dev/config/
@@ -11,6 +11,7 @@ export default defineConfig({
   plugins: [
     vue(),
     AutoImport({
+      imports: [VantImports()],
       resolvers: [VantResolver()],
     }),
     Components({

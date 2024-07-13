@@ -15,6 +15,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "vant": "^4.9.1",
     "vue": "^3.4.21",
     "vue-router": "^4.3.0"
   },
