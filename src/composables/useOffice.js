@@ -32,9 +32,11 @@ export function useOffice() {
     })
 
     const createNewOfficeWithDate = async(date) => {
-        await supabase
+        const { data } = await supabase
             .from('office')
-            .insert({ date });
+            .insert({ date })
+            .select()
+        return data[0].id;
     }
 
     const todayOfficeId = computed(() => {

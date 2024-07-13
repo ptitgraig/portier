@@ -57,7 +57,8 @@ async function onConfirmSunday(date) {
   if (officeId !== '') {
     await router.push({ name: RouteName.PERSON_LIST, query: { officeId } })
   } else {
-    await createNewOfficeWithDate(date);
+    const officeId = await createNewOfficeWithDate(formattedDate);
+    await router.push({ name: RouteName.PERSON_LIST, query: { officeId } })
   }
 }
 
