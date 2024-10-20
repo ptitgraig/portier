@@ -12,7 +12,7 @@ const router = useRouter();
 
 async function getStats() {
   const { data } = await supabase.from('office')
-      .select(`id, date, person (first_name, last_name, is_member, is_baby)`)
+      .select(`id, date, person (first_name, last_name, is_member, is_baby, is_child)`)
   offices.value = data;
 }
 
@@ -21,7 +21,6 @@ async function getCountPersons() {
       .select(`id`, {count : 'exact', 'head' : true})
   totalPersons.value = count;
 }
-
 
 onMounted(async () => {
   await getStats();

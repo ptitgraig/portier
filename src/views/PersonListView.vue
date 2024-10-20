@@ -183,6 +183,7 @@ async function onSubmit(values) {
                 <span>{{ person.last_name }} {{ person.first_name }}</span>
                 <span><van-icon name="medal-o" color="goldenrod" v-if="person.is_member"></van-icon></span>
                 <span><van-icon name="baby" color="pink" v-if="person.is_baby"></van-icon></span>
+                <span v-if="person.is_casual"> 🕶️</span>
               </template>
 
               <template v-if="person.person_office.find(({office_id}) => office_id === currentOfficeId)">
