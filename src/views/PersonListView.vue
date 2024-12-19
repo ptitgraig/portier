@@ -19,10 +19,18 @@ const showAddPersonForm = ref(false);
 const first_name = ref('');
 const last_name = ref('');
 const short_desc = ref('');
+
+// filters
 const is_baby = ref(false);
 const is_child = ref(false);
+const is_member = ref(false);
+const is_casual = ref(false);
+const isFiltersModalShown = ref(false);
 
+const needle = ref('');
+const selectedPersonId = ref();
 
+// filter sync
 watch(is_child, (val) => {
   if (val) {
     is_baby.value = false;
@@ -35,8 +43,37 @@ watch(is_baby, (val) => {
   }
 })
 
+watch(is_member, (val) => {
+  if (val) {
+    is_casual.value = false;
+  }
+})
+
+watch(is_casual, (val) => {
+  if (val) {
+    is_member.value = false;
+  }
+})
+
+const FILTERS = {
+  is_baby: 'bébés',
+  is_child: 'enfants',
+  is_member: 'members',
+  is_casual: 'visiteurs',
+}
+
+const currentFilter = ref('');
+
+function toggleFilter(filterName) {
+  if (currentFilter.value === filterName) {
+    currentFilter.value = ''
+  } else {
+    currentFilter.value = filterName
+  }
+}
+
 onMounted(() => {
-  getPersons();
+  getPersons()
 })
 
 const anchorList = computed(() => {
@@ -47,25 +84,29 @@ const anchorList = computed(() => {
   return ['']
 });
 
+const filteredPersonListByUserFilter = computed(() => {
+  if (currentFilter.value === '') {
+    return personList.value;
+  }
+
+  return personList.value.filter(person => person[currentFilter.value]);
+})
+
 const filteredPersonList = computed(() => {
-  if (needle.value === '' || personList.value.length === 0) {
+  const set2 = new Set(filteredPersonListByName.value);
+  return filteredPersonListByUserFilter.value.filter(person => set2.has(person));
+})
+
+const filteredPersonListByName = computed(() => {
+  if (needle.value === '') {
     return personList.value;
   }
 
   return personList.value.filter((person) => {
     return person.first_name.toLowerCase().includes(needle.value.toLowerCase())
         || person.last_name.toLowerCase().includes(needle.value.toLowerCase());
-  })
+  });
 })
-
-const needle = ref('');
-
-const selectedPersonId = ref();
-
-function onPersonClicked(id/*: string*/) {
-  selectedPersonId.value = id;
-  showBottom.value = !showBottom.value
-}
 
 const selectedPersonInfos = computed(() => {
   return personList.value.find((person) => person.id === selectedPersonId.value)
@@ -83,8 +124,6 @@ async function markPersonAsPresent(personId/*: string*/) {
     const {error} = await supabase
         .from('person_office')
         .insert({person_id: personId, office_id: currentOfficeId});
-
-    await getPersons();
 
     isRecordingPersonAsPresent.value = false;
     recordingPersonId.value = null;
@@ -113,7 +152,6 @@ function removePersonAsPresent(personId/*: string*/) {
   .catch(() => {
     // do nothing
   });
-
 }
 
 async function isVisitorAlreadyRegistered(personId) {
@@ -134,21 +172,33 @@ async function addPerson(firstname, lastname) {
   await getPersons();*/
 }
 
-async function onSubmit(values) {
-  const { error } = await supabase
+function showFilters() {
+  isFiltersModalShown.value = true;
+}
+
+async function addPersonToList(values) {
+  const { data } = await supabase
       .from('person')
       .insert({
         first_name: values.first_name,
         last_name: values.last_name,
         is_baby: values.is_baby,
         is_child: values.is_child
-      });
+      })
+      .select();
 
-  await getPersons();
-  showAddPersonForm.value = false;
+  return data?.[0];
 }
 
+async function onAddVisitor(values) {
+  const person = await addPersonToList(values);
+  await markPersonAsPresent(person?.id);
+  await getPersons();
 
+  showAddPersonForm.value = false;
+
+
+}
 </script>
 
 <template>
@@ -158,7 +208,6 @@ async function onSubmit(values) {
         left-arrow
         @click-left="router.push({ name: 'home' })"
         :title="APP.NAME">
-
       <template #right>
         <van-button icon="plus" size="small" plain type="primary" @click="addPerson()">
           Visiteur
@@ -166,47 +215,61 @@ async function onSubmit(values) {
       </template>
     </van-nav-bar>
 
+    <div class="filters-wrapper">
+      <van-button icon="filter-o" hairline size="small" round :plain="currentFilter !== 'is_baby'" type="primary" @click="toggleFilter('is_baby')">
+        Bébés
+      </van-button>
+      <van-button icon="filter-o" hairline size="small" round :plain="currentFilter !== 'is_child'" type="primary" @click="toggleFilter('is_child')">
+        Enfants
+      </van-button>
+      <van-button icon="filter-o" hairline size="small" round :plain="currentFilter !== 'is_member'" type="primary" @click="toggleFilter('is_member')">
+        Membres
+      </van-button>
+      <van-button icon="filter-o" hairline size="small" round :plain="currentFilter !== 'is_casual'" type="primary" @click="toggleFilter('is_casual')">
+        Visiteurs
+      </van-button>
+    </div>
+
     <van-search
       v-model="needle"
-      placeholder="Rechercher un visiteur"
+      placeholder="Rechercher une personne"
     />
   </van-sticky>
 
-  <van-index-bar>
-    <template v-if="personList.length > 0">
-      <template v-for="anchor in anchorList" :key="`key-${anchor}`">
-        <van-index-anchor :index="anchor" />
-        <template v-for="person in filteredPersonList" :key="person.id">
-          <template v-if="person.last_name.substring(0, 1) === anchor">
-            <van-cell>
-              <template #title>
-                <span>{{ person.last_name }} {{ person.first_name }}</span>
-                <span><van-icon name="medal-o" color="goldenrod" v-if="person.is_member"></van-icon></span>
-                <span><van-icon name="baby" color="pink" v-if="person.is_baby"></van-icon></span>
-                <span v-if="person.is_casual"> 🕶️</span>
-              </template>
 
-              <template v-if="person.person_office.find(({office_id}) => office_id === currentOfficeId)">
-                <van-icon name="passed" size="30" color="green" @click="removePersonAsPresent(person.id)" />
-              </template>
+  <template v-if="personList.length > 0">
 
-              <van-button
-                  v-else
-                  type="primary"
-                  plain
-                  :loading="isRecordingPersonAsPresent && person.id === recordingPersonId"
-                  size="small"
-                  :disabled="isRecordingPersonAsPresent && person.id === recordingPersonId"
-                  loading-text="En cours"
-                  @click="markPersonAsPresent(person.id)">
-                Enregistrer
-              </van-button>
-            </van-cell>
-          </template>
-        </template>
+
+      <template v-for="person in filteredPersonList" :key="person.id">
+
+          <van-cell>
+            <template #title>
+              <span>{{ person.last_name }} {{ person.first_name }}</span>
+              <span><van-icon name="medal-o" color="goldenrod" v-if="person.is_member"></van-icon></span>
+              <span><van-icon name="baby" color="pink" v-if="person.is_baby"></van-icon></span>
+              <span v-if="person.is_casual"> 🕶️</span>
+              <p class="short-desc">{{ person.short_desc }}</p>
+            </template>
+
+            <template v-if="person.person_office.find(({office_id}) => office_id === currentOfficeId)">
+              <van-icon name="passed" size="30" color="green" @click="removePersonAsPresent(person.id)" />
+            </template>
+
+            <van-button
+                v-else
+                type="primary"
+                plain
+                :loading="isRecordingPersonAsPresent && person.id === recordingPersonId"
+                size="small"
+                :disabled="isRecordingPersonAsPresent && person.id === recordingPersonId"
+                loading-text="En cours"
+                @click="markPersonAsPresent(person.id)">
+              Enregistrer
+            </van-button>
+          </van-cell>
       </template>
-    </template>
-  </van-index-bar>
+
+  </template>
 
   <van-action-sheet v-model:show="showBottom" title="Enregistrer un visiteur" inset>
     <van-cell-group>
@@ -231,9 +294,9 @@ async function onSubmit(values) {
 
   </van-action-sheet>
 
-  <van-action-sheet v-model:show="showAddPersonForm" title="Ajouter un visiteur" cancel-text="Annuler">
+  <van-action-sheet v-model:show="showAddPersonForm" cancel-text="Annuler">
     <div class="content">
-      <van-form @submit="onSubmit">
+      <van-form @submit="onAddVisitor">
         <van-cell-group inset>
           <van-field
               v-model="first_name"
@@ -269,11 +332,53 @@ async function onSubmit(values) {
         </van-cell-group>
         <div style="margin: 16px;">
           <van-button round block type="primary" native-type="submit">
-            Submit
+            Ajouter {{ first_name }} {{ last_name }}
           </van-button>
         </div>
       </van-form>
     </div>
   </van-action-sheet>
 
+  <van-action-sheet v-model:show="isFiltersModalShown" title="Filtrer la liste">
+    <div class="content">
+      <van-cell-group inset>
+        <van-field name="switch" label="Les bébés (moins de 3 ans)">
+          <template #input>
+            <van-switch v-model="is_baby" />
+          </template>
+        </van-field>
+        <van-field name="switch" label="Les enfants (entre 3 et 18 ans)">
+          <template #input>
+            <van-switch v-model="is_child" />
+          </template>
+        </van-field>
+        <van-field name="switch" label="Les membres">
+          <template #input>
+            <van-switch v-model="is_member" />
+          </template>
+        </van-field>
+        <van-field name="switch" label="Les visiteurs">
+          <template #input>
+            <van-switch v-model="is_casual" />
+          </template>
+        </van-field>
+      </van-cell-group>
+    </div>
+  </van-action-sheet>
+
 </template>
+
+<style>
+.filters-wrapper {
+  display: flex;
+  flex-direction: row;
+  background: var(--van-search-background);
+  padding: var(--van-search-padding);
+  gap: 10px;
+  overflow-x: scroll;
+
+  button {
+    font-size: var(--van-font-size-xs);
+  }
+}
+</style>

@@ -104,6 +104,8 @@ async function onEditPerson(person) {
               <template #title>
                 <span>{{ person.last_name }} {{ person.first_name }}</span>
                 <span><van-icon name="medal-o" color="goldenrod" v-if="person.is_member"></van-icon></span>
+                <p v-if="person.is_baby" class="short-desc">Bébé</p>
+                <p v-if="person.short_desc" class="short-desc">{{ person.short_desc }}</p>
               </template>
             </van-cell>
           </template>
@@ -124,6 +126,12 @@ async function onEditPerson(person) {
             v-model="last_name"
             name="last_name"
             label="Nom"
+            placeholder=""
+        />
+        <van-field
+            v-model="short_desc"
+            name="short_desc"
+            label="Description courte"
             placeholder=""
         />
         <van-field name="is_baby" label="Bébé">

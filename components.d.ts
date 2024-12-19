@@ -25,6 +25,7 @@ declare module 'vue' {
     VanCol: typeof import('vant/es')['Col']
     VanCollapse: typeof import('vant/es')['Collapse']
     VanCollapseItem: typeof import('vant/es')['CollapseItem']
+    VanConfigProvider: typeof import('vant/es')['ConfigProvider']
     VanField: typeof import('vant/es')['Field']
     VanForm: typeof import('vant/es')['Form']
     VanIcon: typeof import('vant/es')['Icon']
@@ -36,6 +37,8 @@ declare module 'vue' {
     VanSpace: typeof import('vant/es')['Space']
     VanSticky: typeof import('vant/es')['Sticky']
     VanSwitch: typeof import('vant/es')['Switch']
+    VanTabbar: typeof import('vant/es')['Tabbar']
+    VanTabbarItem: typeof import('vant/es')['TabbarItem']
     WelcomeItem: typeof import('./src/components/WelcomeItem.vue')['default']
   }
 }
