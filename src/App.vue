@@ -12,6 +12,7 @@ const themeVars = reactive({
   fontSizeSm: '16px',
   fontSizeMd: '18px',
   fontSizeLg: '20px',
+  calendarInfoFontSize: '10px',
 });
 </script>
 

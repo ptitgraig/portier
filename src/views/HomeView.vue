@@ -61,8 +61,6 @@ async function onConfirmSunday(date) {
     await router.push({ name: RouteName.PERSON_LIST, query: { officeId } })
   }
 }
-
-console.log(APP.NAME);
 </script>
 
 <template>
@@ -104,7 +102,6 @@ console.log(APP.NAME);
       </van-col>
     </van-row>
 
-
     <van-calendar
         v-model:show="isNotSundayModalShown"
         switch-mode="month"
@@ -125,6 +122,7 @@ console.log(APP.NAME);
         </template>
       </template>
 
+
       <template #top-info="day">
         {{ day.date.toLocaleDateString('fr-FR', { weekday: 'long' }) }}
       </template>
@@ -133,28 +131,5 @@ console.log(APP.NAME);
         Confirmer
       </template>
     </van-calendar>
-<!--
-    <van-popup v-model:show="isNotSundayModalShown" :style="{ padding: '32px' }">
-      <p>Nous ne sommes pas un dimanche. Voulez vous saisir les informations d'un culte précédent ?</p>
-
-      <van-space direction="vertical" fill>
-        <van-col span="24"><van-button type="primary" block @click="router.push({ name : RouteName.DATE_PICKING })">Oui</van-button></van-col>
-
-        <van-col span="24"><van-button type="default" block @click="isNotSundayModalShown = false">Non</van-button></van-col>
-      </van-space>
-
-
-    </van-popup>
-    -->
   </main>
 </template>
-
-<style>
-@media (min-width: 1024px) {
-  .about {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-  }
-}
-</style>

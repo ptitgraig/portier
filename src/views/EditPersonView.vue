@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { supabase } from "@/utils/supabase";
 import {usePerson} from "@/composables/usePerson.js";
 import {APP} from "@/constants/config.js";
+import PersonForm from "@/components/PersonForm.vue";
 
 const { personList, getPersons } = usePerson();
 
@@ -27,12 +28,12 @@ const filteredPersonList = computed(() => {
 const needle = ref('');
 
 const isEditFormShown = ref(false);
-const first_name = ref('');
-const last_name = ref('');
-const is_baby = ref(false);
-const is_child = ref(false);
-const short_desc = ref('');
-const is_member = ref(false);
+const first_name = defineModel('first_name');
+const last_name = defineModel('last_name');
+const is_baby = defineModel('is_baby');
+const is_child = defineModel('is_child');
+const short_desc = defineModel('short_desc');
+const is_member = defineModel('is_member');
 const currentPersonId = ref('');
 const nbOfOfficesAttendance = ref(0);
 
@@ -97,68 +98,26 @@ async function onEditPerson(person) {
     />
   </van-sticky>
 
-
-    <template v-if="personList.length > 0">
-        <template v-for="person in filteredPersonList" :key="person.id">
-            <van-cell is-link @click="showEditForm(person.id)">
-              <template #title>
-                <span>{{ person.last_name }} {{ person.first_name }}</span>
-                <span><van-icon name="medal-o" color="goldenrod" v-if="person.is_member"></van-icon></span>
-                <p v-if="person.is_baby" class="short-desc">Bébé</p>
-                <p v-if="person.short_desc" class="short-desc">{{ person.short_desc }}</p>
-              </template>
-            </van-cell>
+  <template v-if="personList.length > 0">
+    <template v-for="person in filteredPersonList" :key="person.id">
+        <van-cell is-link @click="showEditForm(person.id)">
+          <template #title>
+            <span>{{ person.last_name }} {{ person.first_name }}</span>
+            <span><van-icon name="medal-o" color="goldenrod" v-if="person.is_member"></van-icon></span>
+            <p v-if="person.is_baby" class="short-desc">Bébé</p>
+            <p v-if="person.short_desc" class="short-desc">{{ person.short_desc }}</p>
           </template>
-      </template>
-
-
-  <van-action-sheet v-model:show="isEditFormShown">
-    <van-form @submit="onEditPerson">
-      <van-cell-group inset>
-        <van-field
-            v-model="first_name"
-            name="first_name"
-            label="Prénom"
-            placeholder=""
-            :rules="[{ required: true, message: 'Le prénom est obligatoire' }]"
-        />
-        <van-field
-            v-model="last_name"
-            name="last_name"
-            label="Nom"
-            placeholder=""
-        />
-        <van-field
-            v-model="short_desc"
-            name="short_desc"
-            label="Description courte"
-            placeholder=""
-        />
-        <van-field name="is_baby" label="Bébé">
-          <template #input>
-            <van-switch v-model="is_baby" />
-          </template>
-        </van-field>
-        <van-field name="is_child" label="Enfant (3ans+)">
-          <template #input>
-            <van-switch v-model="is_child" />
-          </template>
-        </van-field>
-        <van-field name="is_member" label="Membre">
-          <template #input>
-            <van-switch v-model="is_member" />
-          </template>
-        </van-field>
-        <van-cell>
-          A participer à {{ nbOfOfficesAttendance }} cultes
         </van-cell>
-      </van-cell-group>
-      <div style="margin: 16px;">
-        <van-button round block type="primary" native-type="submit" >
-          Enregistrer
-        </van-button>
-      </div>
-    </van-form>
-  </van-action-sheet>
+      </template>
+  </template>
+
+  <PersonForm
+      v-model:show="isEditFormShown" @person-edited="onEditPerson"
+      v-model:first_name="first_name"
+      v-model:last_name="last_name"
+      v-model:is_child="is_child"
+      v-model:is_baby="is_baby"
+      v-model:short_desc="short_desc"
+  />
 
 </template>
