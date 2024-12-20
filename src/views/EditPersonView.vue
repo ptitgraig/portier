@@ -88,7 +88,10 @@ async function onEditPerson(person) {
 function onDeletePerson() {
   showConfirmDialog({
     title: 'Suppression',
-    message: `Êtes vous sûr de supprimer ${first_name.value} de la base de donnée ?`,
+    message: `
+      Êtes vous sûr de supprimer ${first_name.value}
+      de la base de donnée ?
+      Cela supprimera aussi tous les enregistrements associés.`,
     cancelButtonText: "Annuler",
     confirmButtonText: "Confirmer"
   })

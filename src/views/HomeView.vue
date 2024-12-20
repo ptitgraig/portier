@@ -109,6 +109,8 @@ async function onConfirmSunday(date) {
         :value="selectedSunday"
         :formatter="formatter"
         @confirm="onConfirmSunday"
+        :show-mark="false"
+        first-day-of-week="1"
     >
       <template #title>
         Choisir un dimanche
@@ -120,11 +122,6 @@ async function onConfirmSunday(date) {
         <template v-else>
           {{ TODAY.toLocaleDateString('fr-FR', { month: 'long' }).toUpperCase() }} {{ TODAY.getUTCFullYear() }}
         </template>
-      </template>
-
-
-      <template #top-info="day">
-        {{ day.date.toLocaleDateString('fr-FR', { weekday: 'long' }) }}
       </template>
 
       <template #confirm-text>
