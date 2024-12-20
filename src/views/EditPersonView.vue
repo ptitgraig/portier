@@ -5,8 +5,9 @@ import { supabase } from "@/utils/supabase";
 import {usePerson} from "@/composables/usePerson.js";
 import {APP} from "@/constants/config.js";
 import PersonForm from "@/components/PersonForm.vue";
+import {showConfirmDialog} from "vant";
 
-const { personList, getPersons } = usePerson();
+const { personList, getPersons, deletePerson } = usePerson();
 
 const router = useRouter();
 
@@ -52,14 +53,17 @@ watch(is_baby, (val) => {
 
 async function showEditForm(personId) {
   currentPersonId.value = personId;
+
   const { data } = await supabase.from('person')
       .select(`*, person_office (office_id)`).eq('id', personId);
+
   first_name.value = data[0].first_name;
   last_name.value = data[0].last_name;
   is_baby.value = data[0].is_baby;
   short_desc.value = data[0].short_desc;
   is_child.value = data[0].is_child;
   is_member.value = data[0].is_member;
+
   nbOfOfficesAttendance.value = data[0].person_office.length;
 
   isEditFormShown.value = true;
@@ -79,6 +83,23 @@ async function onEditPerson(person) {
   await getPersons();
   isEditFormShown.value = false;
   showSuccessToast('Enregistrement réussi.');
+}
+
+function onDeletePerson() {
+  showConfirmDialog({
+    title: 'Suppression',
+    message: `Êtes vous sûr de supprimer ${first_name.value} de la base de donnée ?`,
+    cancelButtonText: "Annuler",
+    confirmButtonText: "Confirmer"
+  })
+  .then(async () => {
+    await deletePerson(currentPersonId.value)
+    await getPersons();
+    isEditFormShown.value = false;
+  })
+  .catch(() => {
+    // do nothing
+  });
 }
 
 </script>
@@ -112,12 +133,15 @@ async function onEditPerson(person) {
   </template>
 
   <PersonForm
+      mode="edit"
       v-model:show="isEditFormShown" @person-edited="onEditPerson"
       v-model:first_name="first_name"
       v-model:last_name="last_name"
       v-model:is_child="is_child"
       v-model:is_baby="is_baby"
       v-model:short_desc="short_desc"
+      :edited-person-id="currentPersonId"
+      @person-deleted="onDeletePerson"
   />
 
 </template>

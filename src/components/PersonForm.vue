@@ -1,9 +1,14 @@
 <script setup>
-import {watch,unref} from "vue";
+import {watch,unref,computed} from "vue";
 
-const emit = defineEmits(['person-added-to-office'])
+const emit = defineEmits(['person-edited', 'person-deleted']);
+
+const props = defineProps({
+  mode: String,
+  editedPersonId: String,
+})
+
 const modelValue = defineModel('modelValue')
-
 const first_name = defineModel('first_name');
 const last_name = defineModel('last_name');
 const is_baby = defineModel('is_baby');
@@ -23,6 +28,12 @@ watch(is_child, (newValue) => {
   }
 })
 
+const mainBtnLabel = computed(() => {
+  return props.mode === 'edit' ?
+      `Éditer ${first_name.value?? ''} ${last_name.value ?? ''}`
+      : `Ajouter ${first_name.value ?? ''} ${last_name.value ?? ''}`
+})
+
 async function onSubmit() {
   emit('person-edited', {
     first_name: unref(first_name),
@@ -32,6 +43,10 @@ async function onSubmit() {
     is_child: unref(is_child),
     is_member: unref(is_member),
   })
+}
+
+async function onDelete() {
+  emit('person-deleted')
 }
 </script>
 
@@ -78,10 +93,13 @@ async function onSubmit() {
           </van-field>
         </van-cell-group>
         <div style="margin: 16px;">
-          <van-button round block type="primary" native-type="submit">
-            Ajouter {{ first_name }} {{ last_name }}
+          <van-button round block type="primary" @click="onSubmit">
+            {{ mainBtnLabel }}
           </van-button>
-          <slot />
+          <br/>
+          <van-button v-if="mode === 'edit'" round block type="danger" @click="onDelete">
+            Supprimer
+          </van-button>
         </div>
       </van-form>
     </div>

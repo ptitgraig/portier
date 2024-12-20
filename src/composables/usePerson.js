@@ -25,9 +25,19 @@ export function usePerson() {
         return data?.[0];
     }
 
+    async function deletePerson(personId) {
+        const { data } = await supabase
+            .from('person')
+            .delete().
+            eq('id', personId)
+
+        return data?.[0];
+    }
+
     return {
         personList,
         getPersons,
-        addPerson
+        addPerson,
+        deletePerson
     };
 }
